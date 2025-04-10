@@ -34,7 +34,7 @@ export class CityService extends PrismaClient implements OnModuleInit, OnModuleD
   }
 
   async findAllCities(paginator: CityPaginatorDto) {
-    let where: any = { deleted: false };
+    let where: Prisma.CityWhereInput = { deleted: false };
 
     if (paginator.id) where = { ...where, id: paginator.id };
     if (paginator.active != undefined) where = { ...where, active: paginator.active };
@@ -88,7 +88,7 @@ export class CityService extends PrismaClient implements OnModuleInit, OnModuleD
     });
 
     if (!city) {
-      throw new NotFoundException('Ciudad no Encontrada')
+      throw new NotFoundException('City not Found')
     }
 
     return city
@@ -96,24 +96,22 @@ export class CityService extends PrismaClient implements OnModuleInit, OnModuleD
 
 
   async updateCity(id: string, data: Partial<CreateCityDto>) {
-
-    const city = await this.findOneCity(id)
-
-    await city.update(
-      {
-        data,
-        include: {
-          uploadUser: {
-            select: { name: true, last_name: true, id: true, username: true },
-          },
-        }
-      });
-    await city.save()
-
-    return city
-
-
+    //Reviso si la ciudad existe
+    await this.findOneCity(id);
+  
+    const updatedCity = await this.city.update({
+      where: { id },
+      data,
+      include: {
+        uploadUser: {
+          select: { name: true, last_name: true, id: true, username: true },
+        },
+      },
+    });
+  
+    return updatedCity;
   }
+  
 
   async deleteCity(id: string) {
 
